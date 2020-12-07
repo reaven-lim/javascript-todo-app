@@ -4,7 +4,7 @@ document.addEventListener("click", function (event) {
   }
 
   if (event.target.classList.contains("btn-remove-task")) {
-    event.target.parentNode.remove();
+    event.target.closest('tr').remove();
   }
 });
 
@@ -15,12 +15,17 @@ function addTask() {
     return alert("please input tasks");
   }
 
-  let html =
-    "<li>" +
-    taskInput.value +
-    ' <button class="btn btn-primary btn-complete-task">Complete Task</button> <button class="btn btn-danger btn-remove-task">Remove Task</button></li>';
+  let html = "<tr>";
+  html += '<td class="text-left">';
+  html += taskInput.value;
+  html += "</td>";
+  html += '<td class="text-right">';
+  html += '<button class="btn btn-primary btn-complete-task">Complete Task</button> ';
+  html += '<button class="btn btn-danger btn-remove-task">Remove Task</button>';
+  html += "</td>";
+  html += "</tr>";
 
-  let todoList = document.getElementById("todo-list");
+  let todoList = document.querySelector("#table-todo-list tbody");
   todoList.innerHTML += html;
 
   // clear the task input

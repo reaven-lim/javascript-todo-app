@@ -1,0 +1,8 @@
+body {
+  background-color: #d4ebf2;
+}
+
+nav.navbar,
+#task-panel {
+  margin-bottom: 15px;
+}

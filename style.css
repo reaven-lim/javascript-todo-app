@@ -1,8 +1,36 @@
 body {
-  background-color: #d4ebf2;
+  background-color: #d2f8d2;
 }
-
-nav.navbar,
 #task-panel {
+  background: transparent;
+  border: none;
   margin-bottom: 15px;
+}
+#task-panel input {
+  border-color: #093b09;
+}
+#task-panel input:focus {
+  box-shadow: none;
+}
+#task-panel button {
+  background-color: #093b09;
+}
+.task-list-wrapper {
+  margin: 40px 0px;
+}
+.task-list-wrapper .subtitle {
+  text-align: center;
+  color: #0c510c;
+  opacity: 0.5;
+}
+.list-group-item {
+  position: relative;
+}
+.list-group-item .todo-buttons {
+  cursor: pointer;
+  float: right;
+  font-size: 18px;
+}
+.list-group-item .todo-buttons span.oi {
+  margin: 0px 10px;
 }

@@ -1,45 +1,88 @@
+const todoList = document.getElementById('todo-list');
+const completedList = document.getElementById('completed-list');
+
 // check both todo and complete list is empty or not, if yes then show message
 checkListEmpty();
 
+// all the click event triggered
 document.addEventListener("click", function (event) {
-  // check if add task button is click
-  if (event.target.id == "btnAddTask") {
-    addTodoList();
-  }
+  let isActive = false;
 
-  if (event.target.classList.contains("btn-remove-task")) {
-    // remove task from both list
-    event.target.closest('li').remove();
-    checkListEmpty();
+  // go thru each element that trigger the event and way back up to the parent
+  for (let target = event.target; target != this; target = target.parentNode) {
+    // add new todo
+    if (target.id == "btnAddTask") {
+      addTodoList();
+
+      isActive = true;
+    }
+
+    // check by class
+    let targetClassList = target.classList;
+    // use for moving the todo, will be pass as parameter for moveTodo function
+    let list = '';
+
+    switch (true) {
+      case targetClassList.contains('btn-remove-task'):
+        // remove task from both list
+        event.target.closest('li').remove();
+        isActive = true;
+        break;
+      case targetClassList.contains('btn-pending-task'):
+        list = 'pending'
+        break;
+      case targetClassList.contains('btn-complete-task'):
+        list = 'complete';
+        break;
+    }
+
+    // if list not empty then mean todo need to be move
+    if (list) {
+      let todo = target.closest('li');
+      moveTodo(todo, list);
+      isActive = true;
+    }
+
+    //  if event is trigger then must break the loop
+    // check is there change to both list, so that to show message
+    if (isActive) {
+      checkListEmpty();
+      break;
+    }
   }
 });
 
+// check both todo and complete is empty or not, if empty then show message
 function checkListEmpty() {
-  // get both todo and complete list
-  let todoList = document.getElementById('todo-list');
-  let completedList = document.getElementById('completed-list');
+  document.querySelectorAll('ul .subtitle').forEach(e => e.remove());
 
-  // add or remove subtitle text for both todo and complete list
-  if (todoList.innerHTML == '') {
+  if (!todoList.querySelector('li.list-group-item')) {
     todoList.innerHTML = todoList.innerHTML + '<p class="subtitle">Good! You did not have any pending tasks!</p>';
-  } else {
-    // get the empty message and if exist then remove it
-    let emptyTodoMsg = document.querySelectorAll('#todo-list .subtitle');
-    if (emptyTodoMsg.length >= 1) {
-      emptyTodoMsg.forEach((e) => e.remove());
-    }
   }
-  if (completedList.innerHTML == '') {
+
+  if (!completedList.querySelector('li.list-group-item')) {
     completedList.innerHTML = completedList.innerHTML + '<p class="subtitle">You did not have any completed task yet.</p>';
-  } else {
-    // same as what perform in todo list
-    let emptyCompleteMsg = document.querySelectorAll('#complete-list .subtitle');
-    if (emptyCompleteMsg.length >= 1) {
-      emptyCompleteMsg.forEach((e) => e.remove());
-    }
   }
 }
 
+// move todo to complete or pending list
+function moveTodo(todo, list) {
+  if (list === 'complete') {
+    todo.querySelector('.btn-complete-task').setAttribute('data-glyph', 'minus')
+    todo.querySelector('.btn-complete-task').classList.add('btn-pending-task')
+    todo.querySelector('.btn-complete-task').classList.remove('btn-complete-task')
+
+    completedList.prepend(todo);
+  } else if (list === 'pending') {
+    todo.querySelector('.btn-pending-task').setAttribute('data-glyph', 'circle-check')
+    todo.querySelector('.btn-pending-task').classList.add('btn-complete-task')
+    todo.querySelector('.btn-pending-task').classList.remove('btn-pending-task')
+
+    todoList.prepend(todo);
+  }
+}
+
+// add new todo list
 function addTodoList() {
   // get the task from input
   let taskInput = document.getElementById("input-task");
@@ -65,6 +108,4 @@ function addTodoList() {
   // clear the task input
   taskInput.value = "";
   taskInput.focus();
-
-  checkListEmpty();
 }

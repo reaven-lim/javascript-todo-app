@@ -1,5 +1,13 @@
 const todoList = document.getElementById('todo-list');
 const completedList = document.getElementById('completed-list');
+let todoData = localStorage.getItem('todoData') ? JSON.parse(localStorage.getItem('todoData')) : { pending: [], complete: [] };
+
+// go thru existing todo list and display them to UI
+Object.keys(todoData).forEach((item) => {
+  todoData[item].forEach((todo) => {
+    addTodoList(todo, item);
+  });
+});
 
 // check both todo and complete list is empty or not, if yes then show message
 checkListEmpty();
@@ -24,8 +32,12 @@ document.addEventListener("click", function (event) {
 
     switch (true) {
       case targetClassList.contains('btn-remove-task'):
+        let item = target.closest('li');
+        let itemList = target.closest('.list-group').id == 'todo-list' ? todoData.pending : todoData.complete;
+        removeTaskFromArray(itemList, item.innerText);
+
         // remove task from both list
-        event.target.closest('li').remove();
+        item.remove();
         isActive = true;
         break;
       case targetClassList.contains('btn-pending-task'):
@@ -46,11 +58,21 @@ document.addEventListener("click", function (event) {
     //  if event is trigger then must break the loop
     // check is there change to both list, so that to show message
     if (isActive) {
+      updateStorageTodoData();
       checkListEmpty();
       break;
     }
   }
 });
+
+
+// function to search array for match item and remove it from array
+function removeTaskFromArray(listing, search) {
+  let index = listing.indexOf(search);
+  if (index > -1) {
+    listing.splice(index, 1);
+  }
+}
 
 // check both todo and complete is empty or not, if empty then show message
 function checkListEmpty() {
@@ -67,45 +89,76 @@ function checkListEmpty() {
 
 // move todo to complete or pending list
 function moveTodo(todo, list) {
+  // get the task
+  let task = todo.innerText;
+
   if (list === 'complete') {
     todo.querySelector('.btn-complete-task').setAttribute('data-glyph', 'minus')
     todo.querySelector('.btn-complete-task').classList.add('btn-pending-task')
     todo.querySelector('.btn-complete-task').classList.remove('btn-complete-task')
 
+    removeTaskFromArray(todoData.pending, task);
+    todoData.complete.push(task);
+
     completedList.prepend(todo);
   } else if (list === 'pending') {
     todo.querySelector('.btn-pending-task').setAttribute('data-glyph', 'circle-check')
-    todo.querySelector('.btn-pending-task').classList.add('btn-complete-task')
-    todo.querySelector('.btn-pending-task').classList.remove('btn-pending-task')
+    todo.querySelector('.btn-pending-task').classList.add('btn-complete-task');
+    todo.querySelector('.btn-pending-task').classList.remove('btn-pending-task');
+
+    removeTaskFromArray(todoData.complete, task);
+    todoData.pending.push(task);
 
     todoList.prepend(todo);
   }
 }
 
 // add new todo list
-function addTodoList() {
+// accept paramter for manual create todo
+function addTodoList(task, list = 'pending') {
   // get the task from input
-  let taskInput = document.getElementById("input-task");
+  const taskInput = document.getElementById("input-task");
+  // if parameter task is not empty then priority on using it first
+  let taskInputVal = (task) ? task : taskInput.value;
 
-  if (taskInput.value == "" || taskInput.value == undefined) {
+  if (taskInputVal == "" || taskInputVal == undefined) {
     // show alert if the task is empty
     return alert("please input tasks");
   }
 
+  // we only set the new task from input to the todoData pending list
+  if (!task) {
+    todoData.pending.push(taskInput.value);
+  }
+
   let taskItem = document.createElement('li');
   let buttons = document.createElement('div');
-  buttons.classList.add('todo-buttons');
-  buttons.innerHTML = '<span class="oi btn-complete-task" data-glyph="circle-check"></span>' + '<span class="oi btn-remove-task" data-glyph="trash"></span>';
+  // defualt list to insert todo item
+  let taskList = todoList;
 
+  buttons.classList.add('todo-buttons');
   taskItem.classList.add('list-group-item');
-  taskItem.innerHTML = taskInput.value;
+  taskItem.innerHTML = taskInputVal;
+
+  // check which list todo item to create
+  if (list == 'pending') {
+    buttons.innerHTML = '<span class="oi btn-complete-task" data-glyph="circle-check"></span>' + '<span class="oi btn-remove-task" data-glyph="trash"></span>';
+  } else {
+    buttons.innerHTML = '<span class="oi btn-pending-task" data-glyph="minus"></span>' + '<span class="oi btn-remove-task" data-glyph="trash"></span>';
+
+    // set the list to insert the todo item
+    taskList = completedList;
+  }
   taskItem.appendChild(buttons);
 
-  // re-get again the latest todo list for insert new task
-  let todoList = document.getElementById('todo-list');
-  todoList.prepend(taskItem);
+  taskList.prepend(taskItem);
 
   // clear the task input
   taskInput.value = "";
   taskInput.focus();
+}
+
+// update localstorage
+function updateStorageTodoData() {
+  localStorage.setItem('todoData', JSON.stringify(todoData));
 }
